@@ -1,0 +1,33 @@
+---
+- name: Install and Configure CloudWatch Agent
+  hosts: [EKS]
+  become: true
+  #vars:
+    #ansible_python_interpreter: /usr/bin/python3
+    #aws_access_key: #AKIAXYKJVY5VH2U3POZ3
+    #aws_secret_key: #GINdcaJxeBC24Ifx6+33JBMAyCJRb3N/FmmOiJz4
+    aws_region: us-east-2
+  tasks:
+    - name: Install AWS CLI
+      yum:
+        name: aws-cli
+        state: present
+
+    - name: Install CloudWatch Agent
+      command: curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
+      args:
+        chdir: /tmp
+
+    - name: Run CloudWatch Agent setup
+      command: python ./awslogs-agent-setup.py --region {{ aws_region }}
+      args:
+        chdir: /tmp
+      #environment:
+        #AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        #AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+
+    - name: Start and Enable CloudWatch Agent
+      service:
+        name: awslogs
+        state: started
+        enabled: yes
